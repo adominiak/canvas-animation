@@ -1,13 +1,7 @@
 (function(){
-  var requestAnimationFrame =
-      window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      window.oRequestAnimationFrame ||
-      function(callback) {
-        return setTimeout(callback, 1);
-      };
+
+  var requestAnimationFrame = RequestAnimationFrame;
+
   function PhotoCanvas() {
     this.canvas = document.getElementById('CanvasForPhotos');
     this.setup();
@@ -16,26 +10,21 @@
   PhotoCanvas.prototype.setup = function(image) {
     if(this.canvas.getContext){
       this.context = this.canvas.getContext('2d');
-      this.imagesLoaded = false;
-      var imgOne = {
-        image: new Image(),
-        x: 50,
-        y:50
-      }
-      var imgTwo = {
-        image: new Image(),
-        x: 50,
-        y: 300
-      }
-      imgOne.image.src = 'http://lorempixel.com/400/200/';
-      imgTwo.image.src = 'http://lorempixel.com/300/200/';
-      this.images = [
-        imgOne,
-        imgTwo
-      ];
-      imgOne.image.onload = this.imageLoadedCallback(imgOne);
-      imgTwo.image.onload = this.imageLoadedCallback(imgTwo);
+      this.imagesLoaded = 0;
+      this.images = [];
+      this.addImage('http://lorempixel.com/400/200/', 50, 50);
+      this.addImage('http://lorempixel.com/300/200/', 50, 300);
     }
+  }
+  PhotoCanvas.prototype.addImage = function(src, x, y) {
+    var imageToAdd = {
+        image: new Image(),
+        x: x,
+        y: y
+      }
+    imageToAdd.image.src = src;
+    imageToAdd.image.onload = this.imageLoadedCallback(imageToAdd);
+    this.images.push(imageToAdd);
   }
 
   PhotoCanvas.prototype.renderImages = function(images) {
@@ -45,44 +34,37 @@
     }).bind(this) );
   }
 
-
   PhotoCanvas.prototype.imageLoadedCallback = function(image) {
     var self = this;
-        return function() {
-          if(self.imagesLoaded) {
-            self.renderImages(self.images);
-            self.bothImagesLoaded();
-          }
-          else {
-            self.imagesLoaded = true;
-          }
-        }
+    var imageLoaded =  function() {
+      if(self.imagesLoaded == self.images.length-1) {
+        self.renderImages(self.images);
+        self.allImagesLoaded();
       }
-  PhotoCanvas.prototype.moveImages = function(images) {
+      else {
+        self.imagesLoaded++;
+      }
+    }
+    return imageLoaded;
+  }
+  PhotoCanvas.prototype.moveImages = function() {
     var callAgain = false;
-    this.renderImages(images);
-    for (var i = images.length - 1; i >= 0; i--) {
-      if(images[i].x+images[i].image.width < this.canvas.width) {
-        images[i].x++;
+    this.renderImages(this.images);
+    for (var i = this.images.length - 1; i >= 0; i--) {
+      if(this.images[i].x+this.images[i].image.width < this.canvas.width) {
+        this.images[i].x++;
         callAgain = true;
       }
     };
     if(callAgain) {
-      requestAnimationFrame(this.callbackMoveImage(images).bind(this));
+      requestAnimationFrame(this.moveImages.bind(this));
     }
   }
-  PhotoCanvas.prototype.callbackMoveImage = function(images) {
-    return function() {
-      this.moveImages(images);
-    }
-  }
-  PhotoCanvas.prototype.bothImagesLoaded = function() {
+
+  PhotoCanvas.prototype.allImagesLoaded = function() {
     var button = document.getElementById("BtnMovePhotos");
-    var activateMove = function() {
-      this.moveImages(this.images);
-    }
     button.hidden = "";
-    button.addEventListener("click", activateMove.bind(this));
+    button.addEventListener("click", this.moveImages.bind(this));
   };
 
   new PhotoCanvas();

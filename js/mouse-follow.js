@@ -1,14 +1,6 @@
 ( function() {
 
-  var requestAnimationFrame =
-    window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    function(callback) {
-      return setTimeout(callback, 1);
-    };
+  var requestAnimationFrame = RequestAnimationFrame;
   canvas = document.getElementById('CanvarForParticles');
   context = canvas.getContext('2d');
   var canvasOffsetX = canvas.getBoundingClientRect().left + window.scrollX;
@@ -39,7 +31,7 @@
   var particles = [];
   for (var i = particlesAmount-1; i >= 0; i--) {
     particles.push( {
-      x: (Math.random() * canvas.width) ,
+      x: (Math.random() * canvas.width),
       y: (Math.random() * canvas.height),
       colour: "#eeeeff",
       vx: Math.random()*2,
