@@ -18,35 +18,33 @@
   }
   PhotoCanvas.prototype.addImage = function(src, x, y) {
     var imageToAdd = {
-        image: new Image(),
-        x: x,
-        y: y
-      }
+      image: new Image(),
+      x: x,
+      y: y
+    }
+    imageToAdd.image.onload = this.imageLoaded.bind(this);
     imageToAdd.image.src = src;
-    imageToAdd.image.onload = this.imageLoadedCallback(imageToAdd);
     this.images.push(imageToAdd);
   }
 
   PhotoCanvas.prototype.renderImages = function(images) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    images.forEach( (function( image ) {
-      this.context.drawImage(image.image, image.x, image.y);
-    }).bind(this) );
+    images.forEach( this.drawSingleImage, this );
   }
 
-  PhotoCanvas.prototype.imageLoadedCallback = function(image) {
-    var self = this;
-    var imageLoaded =  function() {
-      if(self.imagesLoaded == self.images.length-1) {
-        self.renderImages(self.images);
-        self.allImagesLoaded();
-      }
-      else {
-        self.imagesLoaded++;
-      }
-    }
-    return imageLoaded;
+  PhotoCanvas.prototype.drawSingleImage = function(image) {
+    this.context.drawImage(image.image, image.x, image.y);
   }
+
+  PhotoCanvas.prototype.imageLoaded =  function() {
+    if(this.imagesLoaded == this.images.length-1) {
+      this.allImagesLoaded();
+    }
+    else {
+      this.imagesLoaded++;
+    }
+  }
+
   PhotoCanvas.prototype.moveImages = function() {
     var callAgain = false;
     this.renderImages(this.images);
@@ -62,6 +60,7 @@
   }
 
   PhotoCanvas.prototype.allImagesLoaded = function() {
+    this.renderImages(this.images);
     var button = document.getElementById("BtnMovePhotos");
     button.hidden = "";
     button.addEventListener("click", this.moveImages.bind(this));
